@@ -1,4 +1,4 @@
-#include <Arduino.h>
+/*#include <Arduino.h>
 #include "SparkFun_TB6612.h"
 
 // Motor driver
@@ -79,11 +79,11 @@ void readEncoderRR(){
   }
 }
 
-/*
-  Return the absolute distance to the target.
-  0 = left motor
-  1 = right motor
-*/
+//
+//  Return the absolute distance to the target.
+//  0 = left motor
+//  1 = right motor
+//
 float absDist2Target(int target, bool leftOrRight){
   if(leftOrRight)
   {
@@ -94,9 +94,9 @@ float absDist2Target(int target, bool leftOrRight){
   
 }
 
-/*
-  Regulates the speed to the motors. Has to be constantly called to regulate.
-*/
+//
+//  Regulates the speed to the motors. Has to be constantly called to regulate.
+//
 void PID(int targetLL, int targetRR){
   // time difference
   float currT = micros();
@@ -162,14 +162,14 @@ void PID(int targetLL, int targetRR){
   Serial.println(targetRR);
 }
 
-/*
-  State handling function to give the micromouse acceleration and deacceleration
-*/
+//
+//  State handling function to give the micromouse acceleration and deacceleration
+//
 void driveTo(int distanceLL, int distanceRR){
   float targetLL = absPosLL + distanceLL;
   float targetRR = absPosRR + distanceRR;
 
-  /* ### Parked state ### */
+  // ### Parked state ### //
   while(parked){
     // too far away from target, change from parked to accelerating
     if(absDist2Target(targetLL, 0) > distanceLim or absDist2Target(targetRR, 1) > distanceLim){
@@ -179,7 +179,7 @@ void driveTo(int distanceLL, int distanceRR){
     }
   }
 
-  /* ### Accelerating state ### */
+  // ### Accelerating state ### //
   while(accelerating){
     if(speedLim < 255){
       speedLim += accSpeed;
@@ -200,7 +200,7 @@ void driveTo(int distanceLL, int distanceRR){
     }
   }
 
-  /* ### Driving state ### */
+  // ### Driving state ### //
   while(driving){
     PID(targetLL, targetRR);
 
@@ -212,7 +212,7 @@ void driveTo(int distanceLL, int distanceRR){
     }
   }
 
-  /* ### Deaccelerating state ### */
+  // ### Deaccelerating state ### //
   while(deaccelerating){
     if(speedLim >= 70){
       speedLim -= deaccSpeed;
@@ -250,4 +250,90 @@ void loop(){
     delay(700);
     driveTo(-345, +345);
     delay(700);
+}*/
+/*************************************************************
+
+  This is a simple demo of sending and receiving some data.
+  Be sure to check out other examples!
+ *************************************************************/
+
+// Template ID, Device Name and Auth Token are provided by the Blynk.Cloud
+// See the Device Info tab, or Template settings
+#define BLYNK_TEMPLATE_ID "TMPLzIux-iXu"
+#define BLYNK_DEVICE_NAME "Micromouse v2"
+#define BLYNK_AUTH_TOKEN "2FeJeGJ-Ofr3sv2tWK5VPHD_gEaWwQE8"
+
+// Comment this out to disable prints and save space
+#define BLYNK_PRINT Serial
+
+// Hardware pins
+#define BOARD_LED_1 32
+
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+
+char auth[] = BLYNK_AUTH_TOKEN;
+
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "Mulldalen";
+char pass[] = "vilseiskogen";
+
+//BlynkTimer timer;
+
+// LED controller. Is called everytime virtual pin 3 changes value
+BLYNK_WRITE(V2)
+{
+  // Set incoming value from pin V0 to a variable
+  int value = param.asInt();
+  if(value == 1){
+    digitalWrite(BOARD_LED_1, HIGH);
+  }else{
+    digitalWrite(BOARD_LED_1, LOW);
+  }
 }
+
+// This function is called every time the device is connected to the Blynk.Cloud
+BLYNK_CONNECTED()
+{
+  // Change Web Link Button message to "Congratulations!"
+  Blynk.setProperty(V3, "offImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations.png");
+  Blynk.setProperty(V3, "onImageUrl",  "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations_pressed.png");
+  Blynk.setProperty(V3, "url", "https://docs.blynk.io/en/getting-started/what-do-i-need-to-blynk/how-quickstart-device-was-made");
+}
+
+// This function sends Arduino's uptime every second to Virtual Pin 2.
+/*
+void myTimerEvent()
+{
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+  Blynk.virtualWrite(V2, millis() / 1000);
+}*/
+
+void setup()
+{
+  // Debug console and Blynk setup
+  Serial.begin(115200);
+  Blynk.begin(auth, ssid, pass);
+  // You can also specify server:
+  //Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
+  //Blynk.begin(auth, ssid, pass, IPAddress(192,168,1,100), 8080);
+  // Setup a function to be called every second
+  //timer.setInterval(1000L, myTimerEvent);
+
+  // LED setup
+  pinMode(BOARD_LED_1, OUTPUT);
+}
+
+void loop()
+{
+  Blynk.run();
+  //timer.run();
+  // You can inject your own code or combine it with other sketches.
+  // Check other examples on how to communicate with Blynk. Remember
+  // to avoid delay() function!
+}
+
+
