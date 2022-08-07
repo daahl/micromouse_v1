@@ -256,6 +256,11 @@ void loop(){
   This is a simple demo of sending and receiving some data.
   Be sure to check out other examples!
  *************************************************************/
+//#include <Arduino.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+//#include "SparkFun_TB6612.h"
 
 // Template ID, Device Name and Auth Token are provided by the Blynk.Cloud
 // See the Device Info tab, or Template settings
@@ -269,9 +274,22 @@ void loop(){
 // Hardware pins
 #define BOARD_LED_1 32
 
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <BlynkSimpleEsp32.h>
+// Motor driver
+#define AIN1    17
+#define AIN2    18
+#define PWMA    19
+#define LOFFSET -1
+#define BIN1    4
+#define BIN2    2
+#define PWMB    15
+#define ROFFSET -1
+#define STBY    27
+
+// Motor objects and variables to control the motors
+//Motor motorLL = Motor(AIN1, AIN2, PWMA, LOFFSET, STBY);
+//Motor motorRR = Motor(BIN1, BIN2, PWMB, ROFFSET, STBY);
+int speed = 0;
+int turn = 0;
 
 char auth[] = BLYNK_AUTH_TOKEN;
 
@@ -280,7 +298,26 @@ char auth[] = BLYNK_AUTH_TOKEN;
 char ssid[] = "Mulldalen";
 char pass[] = "vilseiskogen";
 
-//BlynkTimer timer;
+BlynkTimer timer;
+
+void driver(){
+  //motorLL.drive(speed + turn);
+  //motorRR.drive(speed - turn);
+}
+
+// Speed controller
+BLYNK_WRITE(V0){
+  int value = param.asInt();
+  speed = value;
+  driver();
+}
+
+// Turn controller
+BLYNK_WRITE(V1){
+  int value = param.asInt();
+  turn = value;
+  driver();
+}
 
 // LED controller. Is called everytime virtual pin 3 changes value
 BLYNK_WRITE(V2)
@@ -304,13 +341,13 @@ BLYNK_CONNECTED()
 }
 
 // This function sends Arduino's uptime every second to Virtual Pin 2.
-/*
+
 void myTimerEvent()
 {
   // You can send any value at any time.
   // Please don't send more that 10 values per second.
   Blynk.virtualWrite(V2, millis() / 1000);
-}*/
+}
 
 void setup()
 {
@@ -321,7 +358,7 @@ void setup()
   //Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
   //Blynk.begin(auth, ssid, pass, IPAddress(192,168,1,100), 8080);
   // Setup a function to be called every second
-  //timer.setInterval(1000L, myTimerEvent);
+  timer.setInterval(1000L, myTimerEvent);
 
   // LED setup
   pinMode(BOARD_LED_1, OUTPUT);
@@ -330,7 +367,7 @@ void setup()
 void loop()
 {
   Blynk.run();
-  //timer.run();
+  timer.run();
   // You can inject your own code or combine it with other sketches.
   // Check other examples on how to communicate with Blynk. Remember
   // to avoid delay() function!
